@@ -1,10 +1,30 @@
 package eng.gascalculator.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import eng.gascalculator.calculations.Calculations;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.formula.functions.Column;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import eng.gascalculator.gas.GasRecords;
+import eng.gascalculator.operations.Operation;
+import eng.gascalculator.operations.LoadGasRecord;
+import eng.gascalculator.operations.SaveGasRecord;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -24,12 +44,12 @@ public class MainController implements Initializable {
 
 	public static final String DATE_COLUMN = "Date";
 	public static final String DISTANCE_COLUMN = "Distance";
-	public static final String LPG_COLUMN = "Lpg";
-	public static final String LPG_AMOUNT_COLUMN = "Amount";
-	public static final String LPG_PRICE_COLUMN = "Price";
-	public static final String PET_COLUMN = "Petrol";
-	public static final String PET_AMOUNT_COLUMN = "Amount";
-	public static final String PET_PRICE_COLUMN = "Price";
+	// public static final String LPG_COLUMN = "Lpg";
+	public static final String LPG_AMOUNT_COLUMN = "LPG Amount";
+	public static final String LPG_PRICE_COLUMN = "LPG Price";
+	// public static final String PET_COLUMN = "Petrol";
+	public static final String PET_AMOUNT_COLUMN = "Pet Amount";
+	public static final String PET_PRICE_COLUMN = "Pet Price";
 	public static final String PAID_COLUMN = "Paid";
 	public static final String SAVING_COLUMN = "Saving";
 	public static final String GAS_EFFICIENCY_COLUM = "Gas Efficiency";
@@ -71,16 +91,23 @@ public class MainController implements Initializable {
 	private Label gasEfficiencyLabel;
 
 	@FXML
-    private Button deleteButton;
+	private Button deleteButton;
 
 	@FXML
 	private Button addButton;
+
+	@FXML
+	private Button saveButton;
+
+	@FXML
+	private Button openButton;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		configurateButton();
 		configurateSliders();
 		configurateTable();
+		loadRecords();
 
 	}
 
@@ -89,7 +116,9 @@ public class MainController implements Initializable {
 
 			@Override
 			public void handle(ActionEvent event) {
-				paidSavingCalculation();
+				Operation calculations = new Operation();
+				calculations.paidSavingCalculation(lpgAmountTextField, petrolAmountTextField, lpgPriceTextField,
+						petrolPriceTextField, gasEfficiencySlider, paidLabel, savingLabel);
 
 			}
 
@@ -99,7 +128,10 @@ public class MainController implements Initializable {
 
 			@Override
 			public void handle(ActionEvent event) {
-				deleteButtonClicked();
+				ObservableList<GasRecords> recordsSelected, allRecords;
+				allRecords = contentTable.getItems();
+				recordsSelected = contentTable.getSelectionModel().getSelectedItems();
+				recordsSelected.forEach(allRecords::remove);
 
 			}
 		});
@@ -108,7 +140,37 @@ public class MainController implements Initializable {
 
 			@Override
 			public void handle(ActionEvent event) {
-				addRecord();
+				Operation calculations = new Operation();
+				calculations.addRecord(dateTextField, distanceTextField, lpgAmountTextField, lpgPriceTextField,
+						petrolAmountTextField, petrolPriceTextField, paidLabel, savingLabel, gasEfficiencyLabel,
+						contentTable);
+			}
+
+		});
+
+		saveButton.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				SaveGasRecord sGasRecord = new SaveGasRecord();
+				sGasRecord.saveRecords(contentTable);
+			}
+
+		});
+
+		openButton.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				JFileChooser fs = new JFileChooser(new File("c://"));
+				fs.setDialogTitle("Open a File");
+				int result = fs.showOpenDialog(null);
+				if (result == JFileChooser.APPROVE_OPTION) {
+
+					LoadGasRecord lGasRecord = new LoadGasRecord();
+					String path = fs.getSelectedFile().getPath();
+					lGasRecord.loadGasRecord(contentTable, path);
+				}
 			}
 
 		});
@@ -125,6 +187,7 @@ public class MainController implements Initializable {
 		});
 	}
 
+	@SuppressWarnings("unchecked")
 	private void configurateTable() {
 
 		TableColumn<GasRecords, String> dateColumn = new TableColumn<GasRecords, String>(DATE_COLUMN);
@@ -133,7 +196,8 @@ public class MainController implements Initializable {
 		TableColumn<GasRecords, String> distanceColumn = new TableColumn<GasRecords, String>(DISTANCE_COLUMN);
 		distanceColumn.setCellValueFactory(new PropertyValueFactory<>("distance"));
 
-		TableColumn<GasRecords, String> lpgColumn = new TableColumn<GasRecords, String>(LPG_COLUMN);
+		// TableColumn<GasRecords, String> lpgColumn = new
+		// TableColumn<GasRecords, String>(LPG_COLUMN);
 
 		TableColumn<GasRecords, String> lpgAmountColumn = new TableColumn<GasRecords, String>(LPG_AMOUNT_COLUMN);
 		lpgAmountColumn.setCellValueFactory(new PropertyValueFactory<>("lpgAmount"));
@@ -141,7 +205,8 @@ public class MainController implements Initializable {
 		TableColumn<GasRecords, String> lpgPriceColumn = new TableColumn<GasRecords, String>(LPG_PRICE_COLUMN);
 		lpgPriceColumn.setCellValueFactory(new PropertyValueFactory<>("lpgPrice"));
 
-		TableColumn<GasRecords, String> petColumn = new TableColumn<GasRecords, String>(PET_COLUMN);
+		// TableColumn<GasRecords, String> petColumn = new
+		// TableColumn<GasRecords, String>(PET_COLUMN);
 
 		TableColumn<GasRecords, String> petAmountColumn = new TableColumn<GasRecords, String>(PET_AMOUNT_COLUMN);
 		petAmountColumn.setCellValueFactory(new PropertyValueFactory<>("petAmount"));
@@ -158,61 +223,22 @@ public class MainController implements Initializable {
 		TableColumn<GasRecords, String> gasEfficiencyColumn = new TableColumn<GasRecords, String>(GAS_EFFICIENCY_COLUM);
 		gasEfficiencyColumn.setCellValueFactory(new PropertyValueFactory<>("gasEfficiency"));
 
-		contentTable.getColumns().addAll(dateColumn,distanceColumn,lpgColumn, petColumn, paidColumn,savingColumn ,gasEfficiencyColumn );
-		lpgColumn.getColumns().addAll(lpgAmountColumn,lpgPriceColumn);
-		petColumn.getColumns().addAll(petAmountColumn, petPriceColumn);
-
-
-	}
-
-	private void paidSavingCalculation() {
-		Calculations calculations = new Calculations();
-
-		double lpgAmo = Double.parseDouble(new String(lpgAmountTextField.getText()));
-		double petAmo = Double.parseDouble(new String(petrolAmountTextField.getText()));
-		double lpgPrice = Double.parseDouble(new String(lpgPriceTextField.getText()));
-		double petPrice = Double.parseDouble(new String(petrolPriceTextField.getText()));
-		double gasEfficiency = Double.parseDouble(gasEfficiencySlider.valueProperty().getValue().toString()) / 100;
-
-		double paidValue = calculations.paidCalculations(lpgAmo, lpgPrice, petAmo, petPrice);
-		double saivingValue = calculations.savingCalculations(lpgAmo, lpgPrice, petPrice, gasEfficiency);
-
-		paidLabel.setText(String.format("%.2f", paidValue));
-		savingLabel.setText(String.format("%.2f", saivingValue));
+		contentTable.getColumns().addAll(dateColumn, distanceColumn, lpgAmountColumn, lpgPriceColumn, petAmountColumn,
+				petPriceColumn, paidColumn, savingColumn, gasEfficiencyColumn);
+		// lpgColumn.getColumns().addAll(lpgAmountColumn, lpgPriceColumn);
+		// petColumn.getColumns().addAll(petAmountColumn, petPriceColumn);
 
 	}
 
-	private void addRecord() {
-		GasRecords gasRecords = new GasRecords();
-		gasRecords.setDate(dateTextField.getText());
-		gasRecords.setDistance(distanceTextField.getText());
-		gasRecords.setLpgAmount(lpgAmountTextField.getText());
-		gasRecords.setLpgPrice(lpgPriceTextField.getText());
-		gasRecords.setPetAmount(petrolAmountTextField.getText());
-		gasRecords.setPetPrice(petrolPriceTextField.getText());
-		gasRecords.setPaid(paidLabel.getText());
-		gasRecords.setSaving(savingLabel.getText());
-		gasRecords.setGasEfficiency(gasEfficiencyLabel.getText());
 
-		contentTable.getItems().add(gasRecords);
+	private void loadRecords() {
 
-		dateTextField.clear();
-		distanceTextField.clear();
-		lpgAmountTextField.clear();
-		lpgPriceTextField.clear();
-		petrolAmountTextField.clear();
-		petrolPriceTextField.clear();
-		paidLabel.setText(String.valueOf(0.00));
-		savingLabel.setText(String.valueOf(0.00));
+		String fileName = "GasData.xls";
+
+		LoadGasRecord lGasRecord = new LoadGasRecord();
+		String path = fileName;
+		lGasRecord.loadGasRecord(contentTable, path);
 
 	}
 
-	public void deleteButtonClicked() {
-		ObservableList<GasRecords> recordsSelected, allRecords;
-		allRecords = contentTable.getItems();
-		recordsSelected = contentTable.getSelectionModel().getSelectedItems();
-
-		recordsSelected.forEach(allRecords::remove);
-
-	}
 }
