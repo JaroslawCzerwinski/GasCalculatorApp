@@ -13,7 +13,7 @@ public class Main extends Application{
 		Parent parent = FXMLLoader.load(getClass().getResource("/eng/gascalculator/view/MainPane.fxml"));
 		Scene scene = new Scene(parent);
 		stage.setScene(scene);
-		stage.setTitle("Gas calculator v0.5");
+		stage.setTitle("Gas calculator v1.0");
 		stage.show();
 
 	}

@@ -3,7 +3,8 @@ package eng.gascalculator.operations;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -14,8 +15,9 @@ import javafx.scene.control.TableView;
 
 public class LoadGasRecord {
 
-	public void loadGasRecord(TableView<GasRecords> cT, String path) {
-
+	public void loadGasRecord(TableView<GasRecords> cT, String path, ArrayList<GasRecords> gasRecordList) {
+		
+		   
 		Workbook wb = null;
 
 		File filePath = new File(path);
@@ -32,6 +34,7 @@ public class LoadGasRecord {
 			cT.getItems().clear();
 
 			Sheet sheet = wb.getSheetAt(0);
+			
 			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
 				GasRecords gasRecords = new GasRecords();
@@ -73,11 +76,18 @@ public class LoadGasRecord {
 						gasRecords.setGasEfficiency(sheet.getRow(i).getCell(j).getStringCellValue());
 						j++;
 					}
-
-					cT.getItems().add(gasRecords);
-
+					
+					gasRecordList.add(gasRecords);
 				}
 			}
+			Collections.sort(gasRecordList);
+			
+			for (int i = 0; i < gasRecordList.size(); i++) {
+				GasRecords gasRecords = gasRecordList.get(i);
+				cT.getItems().add(gasRecords);
+			}
 		}
+		
+		 
 	}
 }

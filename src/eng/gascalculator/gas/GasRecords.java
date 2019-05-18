@@ -3,7 +3,7 @@ package eng.gascalculator.gas;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class GasRecords {
+public class GasRecords implements Comparable<GasRecords> {
 
 	private StringProperty date;
 	private StringProperty distance;
@@ -134,4 +134,14 @@ public class GasRecords {
 		this.saving = new SimpleStringProperty();
 		this.gasEfficiency = new SimpleStringProperty();
 	}
+
+	@Override
+	public int compareTo(GasRecords o) {
+		  int recordCompare = distance.get().compareTo(o.getDistance());
+		    if (recordCompare != 0) {
+		        return recordCompare;
+		    }
+		return 0;
+	}
+	
 }

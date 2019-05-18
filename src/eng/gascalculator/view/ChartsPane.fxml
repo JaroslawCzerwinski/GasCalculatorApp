@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="700.0" prefWidth="1800.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="eng.gascalculator.controller.ChartController">
+   <children>
+      <LineChart fx:id="lineChart" animated="false" layoutX="14.0" layoutY="9.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="600.0" prefWidth="1600.0" title="Charts">
+        <xAxis>
+          <CategoryAxis side="BOTTOM" fx:id="xAxis" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis fx:id="yAxis" side="LEFT" />
+        </yAxis>
+      </LineChart>
+      <CheckBox fx:id="lpgAmountCB" layoutX="1670.0" layoutY="70.0" mnemonicParsing="false" text="LPG Amount" />
+      <CheckBox fx:id="lpgPriceCB" layoutX="1670.0" layoutY="100.0" mnemonicParsing="false" text="LPG Price" />
+      <CheckBox fx:id="petAmountCB" layoutX="1670.0" layoutY="130.0" mnemonicParsing="false" text="Pet Amount" />
+      <CheckBox fx:id="petPriceCB" layoutX="1670.0" layoutY="160.0" mnemonicParsing="false" text="Pet Price" />
+      <CheckBox fx:id="paidCB" layoutX="1670.0" layoutY="190.0" mnemonicParsing="false" selected="true" text="Paid" />
+      <CheckBox fx:id="savingCB" layoutX="1670.0" layoutY="220.0" mnemonicParsing="false" selected="true" text="Saving" />
+      <CheckBox fx:id="distanceCB" layoutX="1670.0" layoutY="250.0" mnemonicParsing="false" text="Car distance" />
+   </children>
+   <padding>
+      <Insets top="50.0" />
+   </padding>
+</AnchorPane>
